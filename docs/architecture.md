@@ -68,7 +68,7 @@ flowchart LR
 
 ## Trust boundaries
 
-1. **Internet ↔ Cloud Run** — IAM-authenticated; `run.requireInvokerIam` org policy prevents `allUsers`.
+1. **Internet ↔ Cloud Run** — IAM-authenticated; `run.managed.requireInvokerIam` org policy prevents `allUsers`.
 2. **Workload ↔ Google APIs** — private VPC path via the *restricted* VIP; no route to the public internet.
 3. **Retrieved content ↔ model** — untrusted data; the model has no tools and cannot act.
 4. **Caller ↔ document** — clearance enforced in SQL, not in the prompt.

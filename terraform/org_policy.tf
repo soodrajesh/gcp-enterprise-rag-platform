@@ -6,7 +6,7 @@ locals {
     "iam.disableServiceAccountKeyUpload",
     "storage.uniformBucketLevelAccess", # no per-object ACL surprises
     "storage.publicAccessPrevention",   # buckets can never be made public
-    "run.requireInvokerIam",            # Cloud Run must use IAM, no allUsers
+    "run.managed.requireInvokerIam",    # Cloud Run must use IAM, no allUsers
     "compute.skipDefaultNetworkCreation",
   ] : []
 }

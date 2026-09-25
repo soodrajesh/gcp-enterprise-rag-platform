@@ -3,7 +3,7 @@
 **Status:** accepted
 
 ## Decision
-Enforce, as code (`terraform/org_policy.tf`): no SA key creation/upload, uniform bucket-level access, public-access prevention, `run.requireInvokerIam`, no default network.
+Enforce, as code (`terraform/org_policy.tf`): no SA key creation/upload, uniform bucket-level access, public-access prevention, `run.managed.requireInvokerIam`, no default network.
 
 ## Consequences
 * Detective controls (scanners, Security Command Center) tell you after the fact; these make the misconfiguration **impossible**.
