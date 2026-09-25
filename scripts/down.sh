@@ -17,9 +17,13 @@ ok "platform destroyed"
 rm -f "$SUFFIX_FILE"
 
 if [ "$PURGE" = 1 ]; then
-  log "Purging state bucket"
-  gcloud storage rm -r "gs://$STATE_BUCKET" --quiet >/dev/null 2>&1 || true
-  ok "state bucket removed"
+  log "Purging this repo's Terraform state"
+  # The state bucket is shared by every repo in this project (one prefix each), so remove only
+  # OUR prefix, and the bucket itself only if nothing else is left in it.
+  gcloud storage rm -r "gs://$STATE_BUCKET/rag-platform/" --quiet >/dev/null 2>&1 || true
+  if [ -z "$(gcloud storage ls "gs://$STATE_BUCKET/" 2>/dev/null)" ]; then
+    gcloud storage rm -r "gs://$STATE_BUCKET" --quiet >/dev/null 2>&1 || true; ok "state prefix and (now empty) bucket removed"
+  else ok "state prefix removed; bucket kept because other stacks still use it"; fi
 fi
 
 log "Anything billable left?"
