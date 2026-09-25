@@ -34,7 +34,7 @@ Rows with `NULL` slot time are cache hits. For real scans, BigQuery bills a 10 M
 
 ## Budget
 ```bash
-gcloud billing budgets list --billing-account 015C97-F6191B-2F8395
+gcloud billing budgets list --billing-account <BILLING_ACCOUNT_ID>
 ```
 ```
 amount:

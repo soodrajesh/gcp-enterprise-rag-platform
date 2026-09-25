@@ -10,10 +10,10 @@ gcloud organizations add-iam-policy-binding <ORG_ID> \
   --member="user:you@example.com" --role="roles/orgpolicy.policyAdmin"
 ```
 ```
-Updated IAM policy for organization [68278813424].
+Updated IAM policy for organization [<ORG_ID>].
 bindings:
 - members:
-  - user:rajeshsoodit@gmail.com
+  - user:operator@example.com
   role: roles/orgpolicy.policyAdmin
 ```
 

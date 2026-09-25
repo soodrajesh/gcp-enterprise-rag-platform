@@ -50,7 +50,7 @@ bindings:
   - serviceAccount:rag-eval-confidential@claude-code-507112.iam.gserviceaccount.com
   - serviceAccount:rag-eval-internal@claude-code-507112.iam.gserviceaccount.com
   - serviceAccount:rag-eval-public@claude-code-507112.iam.gserviceaccount.com
-  - user:rajeshsoodit@gmail.com
+  - user:operator@example.com
   role: roles/run.invoker
 ```
 Ingest is unreachable from the internet:
