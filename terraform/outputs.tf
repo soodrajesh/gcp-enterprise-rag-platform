@@ -1,0 +1,10 @@
+output "api_url" { value = module.api.uri }
+output "docs_bucket" { value = module.data.docs_bucket }
+output "artifact_repo" { value = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.rag.repository_id}" }
+output "build_staging_bucket" { value = google_storage_bucket.build_staging.name }
+output "build_service_account" { value = local.sa["rag-build"] }
+output "wif_provider" { value = module.github_wif.provider }
+output "ci_plan_sa" { value = local.sa["rag-ci-plan"] }
+output "ci_deploy_sa" { value = local.sa["rag-ci-deploy"] }
+output "slo_availability" { value = module.observability.slo_availability }
+output "dashboard_id" { value = module.observability.dashboard_id }

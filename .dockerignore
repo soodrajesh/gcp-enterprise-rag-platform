@@ -1,0 +1,9 @@
+.git
+.terraform
+terraform
+tests
+eval
+docs
+sample-docs
+.venv
+__pycache__

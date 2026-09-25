@@ -1,0 +1,18 @@
+# Builds both service images in parallel and tags them with the commit/short SHA.
+# Run: gcloud builds submit --config cloudbuild.yaml --region europe-west1 \
+#        --substitutions _REPO=europe-west1-docker.pkg.dev/PROJECT/rag,_TAG=$(git rev-parse --short HEAD) .
+steps:
+  - id: api
+    name: gcr.io/cloud-builders/docker
+    args: [build, --build-arg, SERVICE=api, -t, "${_REPO}/api:${_TAG}", .]
+    waitFor: ['-']
+  - id: ingest
+    name: gcr.io/cloud-builders/docker
+    args: [build, --build-arg, SERVICE=ingest, -t, "${_REPO}/ingest:${_TAG}", .]
+    waitFor: ['-']
+images:
+  - "${_REPO}/api:${_TAG}"
+  - "${_REPO}/ingest:${_TAG}"
+options:
+  logging: CLOUD_LOGGING_ONLY
+  requestedVerifyOption: VERIFIED   # SLSA build provenance

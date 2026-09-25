@@ -1,0 +1,46 @@
+name: deploy
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["src/**", "Dockerfile", "requirements.txt", "cloudbuild.yaml", "sample-docs/**"]
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency: { group: deploy, cancel-in-progress: false }
+
+jobs:
+  deploy:
+    # Bound to the `prod` environment: add required reviewers in repo settings and the
+    # WIF binding (subject repo:<repo>:environment:prod) means no other job can assume this identity.
+    environment: prod
+    runs-on: ubuntu-latest
+    if: vars.WIF_PROVIDER != ''
+    env:
+      PROJECT: ${{ vars.GCP_PROJECT }}
+      REGION: europe-west1
+    steps:
+      - uses: actions/checkout@v4
+      - uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.CI_DEPLOY_SA }}
+      - uses: google-github-actions/setup-gcloud@v2
+      - name: Build (Cloud Build, dedicated SA, SLSA provenance)
+        run: |
+          TAG=${GITHUB_SHA::8}
+          REPO=$REGION-docker.pkg.dev/$PROJECT/rag
+          gcloud builds submit --project $PROJECT --region $REGION --config cloudbuild.yaml \
+            --service-account projects/$PROJECT/serviceAccounts/rag-build@$PROJECT.iam.gserviceaccount.com \
+            --gcs-source-staging-dir gs://$PROJECT-build-staging/src \
+            --substitutions _REPO=$REPO,_TAG=$TAG .
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Roll Cloud Run
+        run: |
+          REPO=$REGION-docker.pkg.dev/$PROJECT/rag
+          gcloud run services update rag-ingest --project $PROJECT --region $REGION --image $REPO/ingest:$TAG
+          gcloud run services update rag-api    --project $PROJECT --region $REGION --image $REPO/api:$TAG
+      - name: Sync knowledge base (triggers ingestion)
+        run: gcloud storage rsync -r sample-docs gs://$PROJECT-rag-docs
