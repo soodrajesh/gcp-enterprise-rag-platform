@@ -8,7 +8,14 @@ PURGE=0; [ "${1:-}" = "--purge" ] && PURGE=1
 
 log "Project $PROJECT_ID — destroying all resources managed by this repo"
 tf_init; resolve_suffix
-$TF destroy -input=false -auto-approve
+# Cloud Run keeps its reserved internal IPs on the subnet for up to ~1h after the services are
+# deleted ("resourceInUseByAnotherResource"). It is transient and cannot be forced, so retry.
+for attempt in $(seq 1 12); do
+  if $TF destroy -input=false -auto-approve 2> >(tee /tmp/rag-destroy.err >&2); then break; fi
+  if grep -q "serverless-ipv4-cloudrun\|resourceInUseByAnotherResource" /tmp/rag-destroy.err && [ "$attempt" -lt 12 ]; then
+    warn "Cloud Run address reservation still held (attempt $attempt/12); retrying in 5 min"; sleep 300
+  else die "terraform destroy failed"; fi
+done
 ok "platform destroyed"
 
 # Things Terraform cannot fully remove; documented, free or pennies:
