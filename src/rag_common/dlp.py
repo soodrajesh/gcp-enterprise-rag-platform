@@ -21,6 +21,20 @@ INFO_TYPES = [
     "AWS_CREDENTIALS",
     "AUTH_TOKEN",
 ]
+# Custom regex infoTypes cover what the built-ins miss: internal/reserved email domains
+# (built-in EMAIL_ADDRESS ignores TLDs like .example/.internal) and local-format Irish mobiles.
+CUSTOM_INFO_TYPES = [
+    {
+        "info_type": {"name": "CORP_EMAIL"},
+        "regex": {"pattern": r"[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+"},
+        "likelihood": dlp_v2.Likelihood.VERY_LIKELY,
+    },
+    {
+        "info_type": {"name": "IE_MOBILE"},
+        "regex": {"pattern": r"\b0[89]\d[ -]?\d{3}[ -]?\d{4}\b"},
+        "likelihood": dlp_v2.Likelihood.VERY_LIKELY,
+    },
+]
 MAX_ITEM_BYTES = 400_000
 
 
@@ -37,6 +51,7 @@ def redact(text: str) -> tuple[str, int]:
     parent = f"projects/{s.project_id}/locations/{s.dlp_location}"
     inspect_config = {
         "info_types": [{"name": n} for n in INFO_TYPES],
+        "custom_info_types": CUSTOM_INFO_TYPES,
         "min_likelihood": dlp_v2.Likelihood.POSSIBLE,
         "include_quote": False,
     }
@@ -57,7 +72,5 @@ def redact(text: str) -> tuple[str, int]:
             }
         )
         out.append(resp.item.value)
-        total += sum(
-            r.item_count for s_ in resp.overview.transformation_summaries for r in s_.results
-        )
+        total += sum(r.count for s_ in resp.overview.transformation_summaries for r in s_.results)
     return "".join(out), total

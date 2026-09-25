@@ -95,18 +95,26 @@ async def handle_event(request: Request) -> dict:
         for c, v in zip(chunks, vectors, strict=True)
     ]
 
-    # Replace-then-load keeps re-delivered events idempotent. Load jobs (not streaming
-    # inserts) so the DELETE above is never blocked by the streaming buffer.
-    bq.query(
-        f"DELETE FROM `{settings.chunks_fqn}` WHERE doc_uri = @uri",
-        job_config=bigquery.QueryJobConfig(
-            query_parameters=[bigquery.ScalarQueryParameter("uri", "STRING", uri)]
-        ),
-    ).result()
+    # Load first, then delete this document's *older* rows. Load jobs (not streaming
+    # inserts) keep DML unblocked by the streaming buffer. Ordering by ingested_at makes
+    # concurrent/re-delivered events converge on the newest load and never leaves the
+    # document empty (a delete-then-load would race and could duplicate rows).
     bq.load_table_from_json(
         rows,
         settings.chunks_fqn,
-        job_config=bigquery.LoadJobConfig(write_disposition="WRITE_APPEND"),
+        job_config=bigquery.LoadJobConfig(
+            write_disposition="WRITE_APPEND", create_disposition="CREATE_NEVER"
+        ),
+    ).result()
+    bq.query(
+        f"DELETE FROM `{settings.chunks_fqn}` "
+        "WHERE doc_uri = @uri AND ingested_at < TIMESTAMP(@now)",
+        job_config=bigquery.QueryJobConfig(
+            query_parameters=[
+                bigquery.ScalarQueryParameter("uri", "STRING", uri),
+                bigquery.ScalarQueryParameter("now", "STRING", now),
+            ]
+        ),
     ).result()
 
     log_event(
