@@ -48,6 +48,12 @@ variable "ingest_image" {
   default     = "us-docker.pkg.dev/cloudrun/container/hello"
 }
 
+variable "resource_suffix" {
+  description = "Appended to names that GCP refuses to reuse after deletion (KMS key ring, WIF pool: 30-day soft-delete). scripts/up.sh generates one per deployment so rebuilds never collide."
+  type        = string
+  default     = ""
+}
+
 variable "enforce_org_policies" {
   description = "Apply project-level organisation policy constraints (needs roles/orgpolicy.policyAdmin)."
   type        = bool

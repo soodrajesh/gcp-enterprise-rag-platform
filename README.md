@@ -126,12 +126,12 @@ Written up in [the troubleshooting catalogue](docs/runbooks/09-troubleshooting.m
 
 ```bash
 git clone https://github.com/soodrajesh/gcp-enterprise-rag-platform && cd gcp-enterprise-rag-platform
-cp terraform/example.tfvars terraform/terraform.tfvars      # set project, billing account, email
-make bootstrap && make apply                                # ~10 min, 120+ resources
-make images TAG=v1 && make deploy TAG=v1
-make seed && make eval                                      # expect 11/11
+gcloud config set project <your-project>   # billing linked; everything else is auto-detected
+./scripts/up.sh      # state bucket → 120+ resources → images → rollout → seed → eval (expect 11/11)
+./scripts/down.sh    # destroy everything this repo created (--purge also drops the state bucket)
 ```
-Step-by-step with expected output: [runbook 01](docs/runbooks/01-bootstrap-and-deploy.md). Tear down with `make destroy` ([runbook 10](docs/runbooks/10-teardown.md)).
+`./scripts/up.sh --plan` shows the Terraform plan without changing anything. Optional overrides: [`deploy.env.example`](deploy.env.example).
+Step-by-step with expected output: [runbook 01](docs/runbooks/01-bootstrap-and-deploy.md). Teardown details: [runbook 10](docs/runbooks/10-teardown.md).
 
 **Cost:** everything scales to zero; a demo month is a few euros. Budget alerts are created by Terraform.
 

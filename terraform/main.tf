@@ -16,7 +16,7 @@ module "kms" {
   source     = "./modules/kms"
   project_id = var.project_id
   region     = var.region
-  name       = "rag-eu"
+  name       = "rag-eu${var.resource_suffix}"
   encrypter_members = {
     gcs      = "serviceAccount:${data.google_storage_project_service_account.gcs.email_address}"
     bigquery = "serviceAccount:${data.google_bigquery_default_service_account.bq.email}"
@@ -230,5 +230,6 @@ module "github_wif" {
   github_repo     = var.github_repo
   plan_sa_email   = local.sa["rag-ci-plan"]
   deploy_sa_email = local.sa["rag-ci-deploy"]
+  pool_suffix     = var.resource_suffix
   depends_on      = [google_project_service.apis]
 }

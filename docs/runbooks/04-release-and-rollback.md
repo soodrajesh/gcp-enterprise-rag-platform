@@ -59,5 +59,5 @@ gcloud run services update-traffic rag-api --to-tags canary=10 # 10% of requests
 ```
 Watch the burn-rate alert for 15 min ([05](05-availability-incident.md)), then `--to-latest`.
 
-## Caveat: Terraform vs `gcloud run` image drift
-Terraform creates the services with the placeholder image and does not manage the running image afterwards (CI rolls it). A plain `terraform apply` would try to reset the image to the variable value: pass `-var api_image=… -var ingest_image=…` with the deployed digests, or add `ignore_changes` on the container image once you standardise on CI-driven rollouts.
+## Terraform vs `gcloud run` image drift
+Terraform owns the image via `-var api_image=… -var ingest_image=…`. `up.sh` handles this: it carries over whatever is currently deployed and only rolls to a newly built image deliberately. If you hand-roll an image with `gcloud run`, a bare `terraform apply` will show the image as drift (it plans to reset to the placeholder) — always apply through `up.sh` or pass the vars.

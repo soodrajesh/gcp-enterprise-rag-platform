@@ -5,9 +5,14 @@ TF       = terraform -chdir=terraform
 REPO     = $(REGION)-docker.pkg.dev/$(PROJECT)/rag
 BUILD_SA = projects/$(PROJECT)/serviceAccounts/rag-build@$(PROJECT).iam.gserviceaccount.com
 
-.PHONY: help install lint test bootstrap init plan apply images deploy seed eval proxy destroy
+.PHONY: up down help install lint test bootstrap init plan apply images deploy seed eval proxy destroy
 help: ## list targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-10s %s\n", $$1, $$2}'
+
+up: ## build EVERYTHING end to end (state, infra, images, seed, eval)
+	./scripts/up.sh
+down: ## delete EVERYTHING this repo created (add PURGE=1 to also drop the state bucket)
+	./scripts/down.sh $(if $(PURGE),--purge,)
 
 install: ## create venv + dev deps
 	python3 -m venv .venv && .venv/bin/pip install -q -r requirements-dev.txt

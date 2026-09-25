@@ -48,7 +48,9 @@ resource "google_bigquery_table" "chunks" {
   dataset_id          = google_bigquery_dataset.rag.dataset_id
   table_id            = "chunks"
   deletion_protection = false
-  description         = "One row per document chunk with its embedding and classification."
+
+  encryption_configuration { kms_key_name = var.kms_key_id }
+  description = "One row per document chunk with its embedding and classification."
 
   schema = jsonencode([
     { name = "chunk_id", type = "STRING", mode = "REQUIRED" },
@@ -72,7 +74,9 @@ resource "google_bigquery_table" "query_log" {
   dataset_id          = google_bigquery_dataset.rag.dataset_id
   table_id            = "query_log"
   deletion_protection = false
-  description         = "Append-only audit trail: who asked what, what was retrieved, cost and latency."
+
+  encryption_configuration { kms_key_name = var.kms_key_id }
+  description = "Append-only audit trail: who asked what, what was retrieved, cost and latency."
 
   time_partitioning {
     type          = "DAY"

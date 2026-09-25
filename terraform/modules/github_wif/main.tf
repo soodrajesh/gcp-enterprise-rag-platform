@@ -2,6 +2,11 @@ variable "project_id" { type = string }
 variable "github_repo" { type = string }
 variable "plan_sa_email" { type = string }
 variable "deploy_sa_email" { type = string }
+variable "pool_suffix" {
+  description = "Pool IDs are soft-deleted for 30 days and cannot be reused; suffix per deployment."
+  type        = string
+  default     = ""
+}
 variable "deploy_environment" {
   description = "GitHub Actions environment the deploy identity is bound to (add required reviewers in repo settings)."
   type        = string
@@ -12,7 +17,7 @@ variable "deploy_environment" {
 # No service account keys exist anywhere (and org policy forbids creating them).
 resource "google_iam_workload_identity_pool" "github" {
   project                   = var.project_id
-  workload_identity_pool_id = "github"
+  workload_identity_pool_id = "github${var.pool_suffix}"
   display_name              = "GitHub Actions"
 }
 

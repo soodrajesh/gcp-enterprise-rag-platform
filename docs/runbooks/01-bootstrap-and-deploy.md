@@ -2,6 +2,8 @@
 
 **When:** new project, or rebuilding after teardown. ~15 min.
 
+**The one-command path:** `./scripts/up.sh` performs every step below (idempotent; `--plan` previews). The manual steps are documented so you can see what it does and debug it.
+
 **Prereqs:** `gcloud`, `terraform >= 1.9`, a project with billing, and — for the org-policy guardrails — `roles/orgpolicy.policyAdmin` on the org.
 
 ## 1. Grant org-policy admin (one-time; Organization Admin does *not* include it)
