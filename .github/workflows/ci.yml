@@ -37,7 +37,7 @@ jobs:
           output_format: cli,sarif
           output_file_path: console,checkov.sarif
       - name: Trivy (config + secrets + deps)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scanners: vuln,secret,misconfig
