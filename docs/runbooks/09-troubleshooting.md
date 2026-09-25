@@ -118,3 +118,10 @@ gcloud pubsub subscriptions list --project $PROJECT --format='table(name.basenam
 # what does Terraform think exists?
 terraform -chdir=terraform state list | wc -l    # 121
 ```
+
+## T14 · `terraform destroy` fails on the subnet: `resourceInUseByAnotherResource` (Cloud Run addresses)
+```
+Error when reading or editing Subnetwork: googleapi: Error 400: The subnetwork resource '.../subnetworks/rag-vpc-run' is already being used by
+'.../addresses/serverless-ipv4-cloudrun-1790364804602322362', resourceInUseByAnotherResource
+```
+**Cause:** Cloud Run *direct VPC egress* reserves internal IPs on the subnet (`serverless-ipv4-cloudrun-*`, status `RESERVED`, no users). After the services are deleted Google holds the reservation for up to ~an hour and refuses to release it early — `gcloud compute addresses delete` fails with "already being used by //serverless.googleapis.com/.../addressReservations/...". **Fix:** wait, retry. `down.sh` now retries every 5 minutes (up to 12×); it completed after ~35 minutes on the first live teardown (26 resources destroyed).

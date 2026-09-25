@@ -6,6 +6,8 @@ A **secure, governed, observable GenAI knowledge platform** — built end to end
 
 <sub>Live output from the deployed service: grounded answer, inline citations, per-stage latency, token usage. Dark mode: [`ui-answer-dark.png`](docs/img/ui-answer-dark.png).</sub>
 
+> The live environment was torn down with `./scripts/down.sh` after the evidence below was captured (screenshots and outputs are from the running system). Rebuild any time with `./scripts/up.sh`.
+
 ## What it demonstrates
 
 | Concern | How it's solved here | Proof |
