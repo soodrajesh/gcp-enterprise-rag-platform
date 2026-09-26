@@ -25,39 +25,9 @@ A **secure, governed, observable GenAI knowledge platform** — built end to end
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    user([Employee]) -->|"ID token · Cloud Run IAM"| api
-    admin([Platform team]) -->|upload docs| gcs
-    subgraph gcp["GCP project · europe-west1 · CMEK"]
-      direction LR
-      subgraph ing["Ingestion (async, event-driven)"]
-        gcs[("Cloud Storage<br/>public/ internal/ confidential/")]
-        eva["Eventarc<br/>object.finalized"]
-        ingest["Cloud Run<br/>rag-ingest<br/>internal-only ingress"]
-        dlp1["Cloud DLP<br/>redact"]
-        gcs --> eva --> ingest --> dlp1
-      end
-      subgraph qry["Query (sync)"]
-        api["Cloud Run<br/>rag-api"]
-        dlp2["Cloud DLP<br/>output scan"]
-        api --> dlp2
-      end
-      bq[("BigQuery<br/>chunks + vectors<br/>audit log")]
-      vx["Vertex AI<br/>embeddings · Gemini"]
-      ingest -->|embed| vx
-      ingest -->|load| bq
-      api -->|"embed · generate"| vx
-      api -->|"VECTOR_SEARCH<br/>ACL pre-filter"| bq
-      vpc{{"VPC · no internet route<br/>egress → restricted.googleapis.com only"}}
-      ingest -.-> vpc
-      api -.-> vpc
-      kms[/"Cloud KMS"/] -.-> gcs
-      kms -.-> bq
-    end
-    api -.-> ops["Monitoring · SLOs · Trace"]
-    gh(["GitHub Actions"]) -->|"OIDC → WIF, no keys"| gcp
-```
+[![Architecture](docs/img/architecture.png)](docs/img/architecture.svg)
+
+<sub>Click for the vector version. Numbered steps trace the request path, lettered steps trace delivery; the legend under the diagram explains each one. Diagram source: [`docs/diagrams/architecture.py`](docs/diagrams/architecture.py).</sub>
 
 Full request lifecycle, trust boundaries and data flow: [docs/architecture.md](docs/architecture.md).
 

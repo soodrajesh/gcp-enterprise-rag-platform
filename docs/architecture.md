@@ -2,48 +2,9 @@
 
 ## Context
 
-```mermaid
-flowchart LR
-    user([Employee]) -->|"ID token (Cloud Run IAM)"| api
-    admin([Platform team]) -->|upload docs| gcs
-    subgraph gcp["GCP project · europe-west1 · CMEK everywhere"]
-      direction LR
-      subgraph ingest_path["Ingestion path (async, event-driven)"]
-        gcs[("Cloud Storage<br/>docs bucket<br/>public/ internal/ confidential/")]
-        eva["Eventarc<br/>object.finalized"]
-        ing["Cloud Run<br/>rag-ingest<br/>(internal-only ingress)"]
-        dlp1["Cloud DLP<br/>de-identify"]
-        gcs --> eva --> ing
-        ing --> dlp1
-      end
-      subgraph query_path["Query path (sync)"]
-        api["Cloud Run<br/>rag-api"]
-        dlp2["Cloud DLP<br/>output scan"]
-        api --> dlp2
-      end
-      bq[("BigQuery<br/>chunks + embeddings<br/>query_log")]
-      vx["Vertex AI<br/>text-embedding-005<br/>Gemini 2.5 Flash"]
-      ing -->|"embed chunks"| vx
-      ing -->|"load job"| bq
-      api -->|"embed query · generate"| vx
-      api -->|"VECTOR_SEARCH<br/>ACL pre-filter"| bq
-      api -->|audit row| bq
-      vpc{{"VPC · no internet route<br/>egress only to restricted.googleapis.com"}}
-      ing -.-> vpc
-      api -.-> vpc
-      kms[/"Cloud KMS<br/>CMEK, 90d rotation"/]
-      kms -.encrypts.-> gcs
-      kms -.encrypts.-> bq
-    end
-    subgraph ops["Operations"]
-      mon["Cloud Monitoring<br/>SLOs · burn-rate alerts · dashboard"]
-      trace["Cloud Trace"]
-      bud["Billing budget"]
-    end
-    api -.-> mon
-    api -.-> trace
-    gh(["GitHub Actions"]) -->|"OIDC → WIF<br/>no keys"| gcp
-```
+[![Architecture](img/architecture.png)](img/architecture.svg)
+
+<sub>Click for the vector version. Numbered steps trace the request path, lettered steps trace delivery; the legend under the diagram explains each one. Diagram source: [`docs/diagrams/architecture.py`](diagrams/architecture.py).</sub>
 
 ## Request lifecycle (query path)
 
